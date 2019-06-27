@@ -6,6 +6,12 @@ from aiohttp import web
 
 
 async def dbtask(dbname: str, q: asyncio.Queue):
+    # db = await aiosqlite.connect(...)
+    # cursor = await db.execute('SELECT * FROM some_table')
+    # row = await cursor.fetchone()
+    # rows = await cursor.fetchall()
+    # await cursor.close()
+    # await db.close()
     async with aiosqlite.connect(dbname) as db:
         while True:  # Change to a delay-based expiry
             query, f = await q.get()
@@ -28,7 +34,7 @@ async def run_query(dbname, query: str) -> str:  # JSON data
         t.q = q
 
     f = asyncio.Future()
-    await q.put((query, f))
+    await t.q.put((query, f))
     result = await f
     return str(result)
 
@@ -51,6 +57,7 @@ app.add_routes(
     [
         web.get("/", handle),
         web.get("/{name}", handle),
+        # Change query to a param
         web.get("/{dbname}/{query}", query),
     ]
 )
