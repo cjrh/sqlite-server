@@ -9,8 +9,8 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, "README.rst"), encoding="utf-8") as f:
     long_description = f.read()
 
-# Arguments marked as "Required" below must be included for upload to PyPI.
-# Fields marked as "Optional" may be commented out.
+extras_require = {"dev": ["check-manifest", "wheel"], "test": ["pytest", "pytest-cov"]}
+extras_require["all"] = list({d for k, deps in extras_require.items() for d in deps})
 
 setup(
     name="sqlite_server",
@@ -35,16 +35,5 @@ setup(
     keywords="sqlite",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     install_requires=["aiosqlite", "aiohttp"],
-    extras_require={  # Optional
-        "dev": ["check-manifest"],
-        "test": ["pytest", "pytest-cov"],
-    },
-    # To provide executable scripts, use entry points in preference to the
-    # "scripts" keyword. Entry points provide cross-platform support and allow
-    # `pip` to create the appropriate form of executable for the target
-    # platform.
-    #
-    # For example, the following would provide a command called `sample` which
-    # executes the function `main` from this package when invoked:
-    entry_points={"console_scripts": ["sqlite_server=sqlite_server:main"]},  # Optional
+    entry_points={"console_scripts": ["sqlite_server=sqlite_server:main"]},
 )
