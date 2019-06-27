@@ -35,6 +35,6 @@ setup(
     extras_require=extras_require,
     keywords="sqlite",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
-    install_requires=["aiosqlite", "aiohttp"],
+    install_requires=["aiosqlite", "aiohttp", "cchardet", "aiodns"],
     entry_points={"console_scripts": ["sqlite_server=sqlite_server:main"]},
 )
