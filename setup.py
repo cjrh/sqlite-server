@@ -32,6 +32,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
     ],
+    extras_require=extras_require,
     keywords="sqlite",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     install_requires=["aiosqlite", "aiohttp"],
