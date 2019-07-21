@@ -1,5 +1,6 @@
 [run]
 branch = True
+source = sqlite_server, tests
 
 [report]
 # Regexes for lines to exclude from consideration
