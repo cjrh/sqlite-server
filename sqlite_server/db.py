@@ -31,8 +31,9 @@ async def run_query(dbname, query: str) -> str:  # JSON data
         q = asyncio.Queue()
         t = asyncio.create_task(dbtask(dbname, q))
         t.q = q
+        dbtasks[dbname] = t
 
     f = asyncio.Future()
-    await t.q.put((query, f))
+    t.q.put_nowait((query, f))
     result = await f
     return str(result)
