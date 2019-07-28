@@ -13,7 +13,12 @@ async def dbtask(dbname: str, q: asyncio.Queue):
     # await db.close()
     async with aiosqlite.connect(dbname) as db:
         while True:  # Change to a delay-based expiry
-            query, f = await q.get()
+            try:
+                query, f = q.get_nowait()
+            except asyncio.QueueEmpty:
+                # The connection will only be kept open while
+                # there is work to be done.
+                return
             result = []
             async with db.execute(query) as cursor:
                 async for row in cursor:
