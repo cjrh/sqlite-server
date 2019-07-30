@@ -1,6 +1,7 @@
 import asyncio
 import pathlib
 from urllib import parse
+from contextlib import asynccontextmanager
 
 import aiohttp
 from aiohttp import web
@@ -11,42 +12,34 @@ import sqlite_server.wmain as wmain
 from sqlite_server.util import printl
 
 
-@pytest.fixture(scope='module')
-def server():
-    loop = asyncio.get_event_loop()
+@asynccontextmanager
+async def server():
     app = web.Application()
-    t = loop.create_task(wmain.wmain(app))
-    print('running server')
+    t = asyncio.create_task(wmain.wmain(app))
     try:
-        printl('yielding to tests...')
-        yield app, loop
-        printl('back from tests...')
+        yield app
     finally:
-        printl('cancelling server task...')
         t.cancel()
-        printl('waiting for server to close...')
-        loop.run_until_complete(t)
-        printl('server closed')
+        await t
 
 
-def test_blah(server):
-    app, loop = server
+def test_blah():
     responses = []
 
     async def test():
         printl(time.perf_counter())
-        async with aiohttp.ClientSession() as session:
-            async with session.get('http://127.0.0.1:8080/caleb') as resp:
-                printl(resp.status)
-                r = await resp.text()
-                responses.append(r)
+        async with server() as app:
+            async with aiohttp.ClientSession() as session:
+                async with session.get('http://127.0.0.1:8080/caleb') as resp:
+                    printl(resp.status)
+                    r = await resp.text()
+                    responses.append(r)
 
-    loop.run_until_complete(test())
+    asyncio.run(test())
     printl(responses)
 
 
-def test_query(server):
-    app, loop = server
+def test_query():
     responses = []
     dbname = '34feba8fb61144dfb5cb9d4ecdd08683'
 
@@ -56,13 +49,14 @@ def test_query(server):
 
     async def test():
         printl(time.perf_counter())
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                printl(resp.status)
-                r = await resp.text()
-                responses.append(r)
+        async with server() as app:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as resp:
+                    printl(resp.status)
+                    r = await resp.text()
+                    responses.append(r)
 
-    loop.run_until_complete(test())
+    asyncio.run(test())
     printl(responses)
     print('leaving test!')
     assert responses[0] == (

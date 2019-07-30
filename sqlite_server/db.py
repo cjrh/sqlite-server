@@ -5,12 +5,6 @@ import aiosqlite
 
 
 async def dbtask(dbname: str, q: asyncio.Queue):
-    # db = await aiosqlite.connect(...)
-    # cursor = await db.execute('SELECT * FROM some_table')
-    # row = await cursor.fetchone()
-    # rows = await cursor.fetchall()
-    # await cursor.close()
-    # await db.close()
     async with aiosqlite.connect(dbname) as db:
         while True:  # Change to a delay-based expiry
             try:
