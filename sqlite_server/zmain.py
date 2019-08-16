@@ -2,6 +2,7 @@ import logging
 import asyncio
 import json
 from typing import Dict
+import pathlib
 
 import zmq
 from zmq.asyncio import Context, Socket
@@ -13,24 +14,26 @@ from . import db
 logger = logging.getLogger(__name__)
 
 
-async def process_db_action(sock: Socket, id_: bytes, raw_msg: bytes):
+async def process_db_action(sock: Socket, raw_msg: bytes):
     msg: Dict = json.loads(raw_msg)
     dbname = msg['dbname']
     query = msg['query']
+    dbname = pathlib.Path(__file__).parent.parent / f'tests/{dbname}/storage.db'
+    print('dbname', dbname)
+    print('query', query)
     result = await db.run_query(dbname, query)
-    raw_result = json.dumps(dict(result=result)).encode()
-    await sock.send_multipart([id_, raw_result])
+    raw_result = result.encode()
+    print(f'Query result: {raw_result}')
+    await sock.send(raw_result)
 
 
 async def process_messages(sock: Socket):
-    # After making connection, send our identity
-    await sock.send_json(dict(
-        identity=settings.IDENTITY
-    ))
     while True:
         try:
-            id_, raw_msg = await sock.recv_multipart()
-            asyncio.create_task(process_db_action(sock, id_, raw_msg))
+            logger.debug('Waiting for query...')
+            raw_msg = await sock.recv()
+            logger.debug(f'Got message: {raw_msg}')
+            asyncio.create_task(process_db_action(sock, raw_msg))
         except asyncio.CancelledError:
             raise
         except Exception:
@@ -38,10 +41,18 @@ async def process_messages(sock: Socket):
 
 
 async def zmain():
+    logger.info(123)
     ctx = Context()
+    logger.info(456)
     sock: Socket = ctx.socket(zmq.DEALER)
-    sock.identity = settings.IDENTITY
-    sock.connect(f'tcp://{settings.TARGET_SERVER_URL}:{settings.TARGET_SERVER_PORT:d}')
+    logger.info(789)
+    idd = settings.IDENTITY
+    logger.info(idd)
+    sock.identity = idd.encode()
+    logger.info(345)
+    connection_string = f'tcp://{settings.TARGET_SERVER_URL()}:{settings.TARGET_SERVER_PORT():d}'
+    logger.info(f'Connecting to {connection_string}')
+    sock.connect(connection_string)
     try:
         await process_messages(sock)
     except asyncio.CancelledError:

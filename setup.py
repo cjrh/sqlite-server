@@ -9,7 +9,7 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, "README.rst"), encoding="utf-8") as f:
     long_description = f.read()
 
-extras_require = {"dev": ["check-manifest", "wheel"], "test": ["pytest", "pytest-cov"]}
+extras_require = {"dev": ["check-manifest", "wheel"], "test": ["pytest", "pytest-cov", "portpicker"]}
 extras_require["all"] = list({d for k, deps in extras_require.items() for d in deps})
 
 setup(
